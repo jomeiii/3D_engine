@@ -33,8 +33,9 @@ for row in text_map:
 FOV = math.pi / 2
 half_FOV = FOV / 2
 max_depth = width // block_size
-num_rays = 600
+num_rays = width
 delta_ray = FOV / (num_rays - 1)
 dist = num_rays / (2 * math.tan(half_FOV))
 coefficient = dist * block_size * 2
-scale = width // num_rays
+scale = 1
+depth_coeff = 2

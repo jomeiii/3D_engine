@@ -29,16 +29,38 @@ class Engine:
                 if event.type == pg.QUIT:
                     self.running = False
 
-            self.player.move(self.delta)
-            self.client.client_program((self.player.x, self.player.y))
             self.delta = delta_time()
             self.display.fill(pg.Color("darkslategray"))
-            pg.display.set_caption("FPS: " + str(int(self.clock.get_fps())))
+            self.player.move(self.delta)
+            self.client.client_program(self.player)
 
             ray_casting(self.display, self.player)
 
+            pg.display.set_caption("Client FPS: " + str(int(self.clock.get_fps())))
             self.clock.tick(0)
             pg.display.flip()
+
+    def draw_environment(self):
+        pg.draw.rect(
+            self.display,
+            (40, 200, 247),
+            (
+                0,
+                0,
+                width,
+                int(half_height) - self.player.ver_a,
+            ),
+        )
+        pg.draw.rect(
+            self.display,
+            (0, 255, 0),
+            (
+                0,
+                half_height - self.player.ver_a,
+                width,
+                int(half_height) + self.player.ver_a,
+            ),
+        )
 
 
 if __name__ == "__main__":

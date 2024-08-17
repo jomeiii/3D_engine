@@ -2,7 +2,6 @@ from config import *
 from player import Player
 import pygame as pg
 
-from typing import Tuple, Optional
 import socket
 import math
 import re
@@ -62,13 +61,16 @@ def ray_casting(display: pg.display, player: Player) -> None:
             if (fixed_x, fixed_y) in block_map:
                 break
 
-        ray_size = min(vd, hd)
+        ray_size = min(vd, hd) * depth_coeff
         ray_size *= math.cos(player.angle - cur_angle)
         height_c = coefficient / (ray_size + 0.0001)
-        c = 255 / (1 + ray_size**2 * 0.00001)
+        c = 255 / (1 + ray_size**2 * 0.000001)
         color = (c, c, c)
+        ray_x = int(ray * (width / num_rays))
         pg.draw.rect(
-            display, color, (ray * scale, half_height - height_c // 2, scale, height_c)
+            display,
+            color,
+            (ray_x, (half_height - height_c // 2) - player.ver_a, scale, height_c),
         )
 
 
@@ -76,10 +78,36 @@ def get_local_ip() -> str:
     return socket.gethostbyname(socket.gethostname())
 
 
-def parse_player_pos(player_pos: str) -> Optional[Tuple[float, float]]:
-    pattern = r"x:\s([\d.]+), \s*y:\s([\d.]+)"
-    match = re.match(pattern, player_pos)
+def parse_player(player_data: str) -> Player:
+    # Обрезаем лишние пробелы в начале и конце строки
+    player_data = player_data.strip()
+    
+    pattern = r"x:\s*([-]?[\d.]+),\s*y:\s*([-]?[\d.]+),\s*radius:\s*([\d.]+),\s*angle:\s*([-]?[\d.]+),\s*ver_a:\s*([-]?[\d.]+)"
+    
+    # Ищем совпадение с паттерном
+    match = re.search(pattern, player_data)
+    
     if match:
-        x = float(match.group(1))
-        y = float(match.group(2))
-        return (x, y)
+        try:
+            x = float(match.group(1))
+            y = float(match.group(2))
+            radius = float(match.group(3))
+            angle = float(match.group(4))
+            ver_a = float(match.group(5))
+
+            player = Player()
+            player.x, player.y = x, y
+            player.radius = radius
+            player.angle = angle
+            player.ver_a = ver_a
+            return player
+        except ValueError as e:
+            print(f"Error converting player data to floats: {e}")
+            return None
+    else:
+        print("Pattern did not match.")
+        print(f"Expected pattern: {pattern}")
+        print(f"Actual data: {player_data}")
+        return None
+
+
